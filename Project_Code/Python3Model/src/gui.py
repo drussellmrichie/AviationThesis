@@ -43,7 +43,7 @@ def ex():
     st.session_state.experiment_name = st.text_input("Experiment Title",)
     st.session_state.experiment_name = st.text_input("Experiment Number",)
     st.write(f"Current Experiment Title: {st.session_state.experiment_name}")
-    st.write(f"Current Experiment Number: {st.session_state.experiment_name}")
+    st.write(f"Current Experiment Number: {st.session_state.experiment_number}")
 
 
     # st.title("Aviation Experiment Platform")

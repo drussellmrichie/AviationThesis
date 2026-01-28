@@ -81,7 +81,7 @@ class params:
         # print("Vision Queue: " + str(self.globalParameters[parameterType.VISION_QUEUE][visionModule.QUEUE.value]))
 
     def visionCycle(self):
-        if(self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] <= len(self.globalParameters[parameterType.VISION_QUEUE][visionModule.QUEUE.value]) - 5):
+        if(self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] <= len(self.globalParameters[parameterType.VISION_QUEUE][visionModule.QUEUE.value]) - 0):
             self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] += 1
         else: 
             self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] = 0

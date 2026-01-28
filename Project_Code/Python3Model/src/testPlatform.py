@@ -190,7 +190,7 @@ def printLoop(status,data):
 
     
 
-def log(cogModel, file,timeElapsed): # Get and format data for logging in output file
+def log(cogModel, file,timeElapsed,cycleLength): # Get and format data for logging in output file
     airspeedDREF = "sim/cockpit2/gauges/indicators/airspeed_kts_pilot"
     rollDREF = "sim/cockpit2/gauges/indicators/roll_AHARS_deg_pilot"
     magneticHeadingDREF = "sim/cockpit2/gauges/indicators/heading_AHARS_deg_mag_pilot"
@@ -202,20 +202,21 @@ def log(cogModel, file,timeElapsed): # Get and format data for logging in output
     brakeDREF = "sim/cockpit2/controls/parking_brake_ratio"
     wheelSpeedDREF = "sim/flightmodel2/gear/tire_rotation_speed_rad_sec"
     wheelWeightDREF = "sim/flightmodel/parts/tire_vrt_def_veh"
-    sources = [latitudeDREF, longitudeDREF,altitudeAGLDREF, pitchDREF,rollDREF]
-    data = cogModel.client.getDREFs(sources)
-    mainString = []
-    # data = client.readDATA()
-    precision = 6
-    mainString.append(str(round(timeElapsed,precision)))
-    mainString.append(",")
-    for d in data:
-        mainString.append(str(round(d[0],precision)))
+    if(timeElapsed > cycleLength):
+        sources = [latitudeDREF, longitudeDREF,altitudeAGLDREF, pitchDREF,rollDREF]
+        data = cogModel.client.getDREFs(sources)
+        mainString = []
+        # data = client.readDATA()
+        precision = 6
+        mainString.append(str(round(timeElapsed,precision)))
         mainString.append(",")
-    mainString[len(mainString)-1] = "\n"
-    finalString = "".join(mainString)
-    file.write(finalString)
-    file.flush()
+        for d in data:
+            mainString.append(str(round(d[0],precision)))
+            mainString.append(",")
+        mainString[len(mainString)-1] = "\n"
+        finalString = "".join(mainString)
+        file.write(finalString)
+        file.flush()
     # file.write(str(timeElapsed) + "," + str(data[0][0]) + "," + str(data[1][0]) + "," + str(data[2][0]) + "," + str(data[3][0]) +"\n")
 
 def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file, stop_event: threading.Event):
@@ -254,20 +255,28 @@ def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experime
                 endTime =   time.time()
                 elapsed =   endTime - startTime
 
+                startTimeLogging = time.time()
+                elapsedLogging = endTime - startTimeLogging
+                loggingInterval = 1.0
+
                 """Print Thread"""
                 def printThreadFunction(parameters):
                     parameters.printParameter()
-                
+
                 while(experimentInProgress and (not stop_event.is_set())):
                     # print(stop_event.is_set())
                     elapsed = endTime - startTime
+                    elapsedLogging = endTime - startTimeLogging
+                    
                     if(elapsed > currentDelay):
                         cogModel.update_aircraft_state() 
                         cogModel.update_controls_simultaneously()
                         # client.pauseSim(False)          #Unpause Simulator
                         startTime = time.time()
                     # sleep(2)                     # Let Simulator Run 50 Milliseconds
-                    log(cogModel,file,elapsed)
+                    if(elapsedLogging > loggingInterval):
+                        log(cogModel,file,elapsedLogging,loggingInterval)
+                        startTimeLogging = time.time()
                     experimentInProgress = cogModel.getSimulationStatus()
                     endTime = time.time()
         except:
@@ -352,8 +361,6 @@ def specialPrint(text, inputRequested,type):
 #     t2
 
 #     return userInput
-
-
 
 def ex(stop_event: threading.Event, experiment_name : str,experiment_number : int):
     # playSound()
