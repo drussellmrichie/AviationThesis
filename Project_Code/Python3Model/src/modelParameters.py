@@ -49,9 +49,10 @@ class params:
         for key in keys:
             result = nestedDictionary[key]
             nestedDictionary = result
-        vision = self.globalParameters[parameterType.VISION_QUEUE][visionModule.QUEUE.value][self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0]:self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] + 4]
+        # vision = self.globalParameters[parameterType.VISION_QUEUE][visionModule.QUEUE.value][self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0]:self.globalParameters[parameterType.VISION_QUEUE][visionModule.POINTER_1.value][0] + 8]
         if(permissionFlag == permissions.WRITE.value 
-           and vision.__contains__(keys.pop())):
+        #    and vision.__contains__(keys.pop())
+           ):
             if isinstance(result, list):
                 previous = result[accessItem]
                 result[accessItem] = inputValue
