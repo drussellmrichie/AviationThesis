@@ -22,7 +22,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters = params()
         self.parameters.initialize()
         self.inProgress = True
-        self.printControlsFlag = printFlag
+        self.allowPrinting = printFlag
 
     def reassignClient(self,newClient):
         self.client = newClient
@@ -105,7 +105,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.RUDDER],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_rudder)
 
         # start = time.time()
-        self.parameters.printParameter()
+        self.parameters.printParameter(self.allowPrinting)
         # end = time.time()
         # elapsed = end - start
         # print(f"Parameter Print Time: {elapsed} seconds")

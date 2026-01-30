@@ -109,7 +109,9 @@ class params:
             keyList.append(item[0])
         return keyList
     
-    def printParameter(self):
+    def printParameter(self,allowPrinting):
+        if(not allowPrinting):
+            return
         dictionary :dict = self.globalParameters.get(parameterType.AIRCRAFT_STATE)
         keys = dictionary.items()
         itemList = []
