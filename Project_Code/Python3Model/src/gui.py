@@ -1,3 +1,5 @@
+import glob
+from pathlib import Path
 import sys
 import streamlit as st
 import testPlatform as tp
@@ -16,12 +18,14 @@ def ex():
         st.session_state.experiment_name = None
     if "experiment_number" not in st.session_state:
         st.session_state.experiment_number = None
+    if "experiment_setup_file" not in st.session_state:
+        st.session_state.experiment_setup_file = None
 
     # --- Button to start experiment ---
     def start_experiment():
         if st.session_state.experiment_thread is None or not st.session_state.experiment_thread.is_alive():
             st.session_state.stop_event.clear()
-            t1 = Thread(target=tp.ex, args=(st.session_state.stop_event,st.session_state.experiment_name,st.session_state.experiment_number), daemon=True)
+            t1 = Thread(target=tp.ex, args=(st.session_state.stop_event,st.session_state.experiment_name,st.session_state.experiment_number,st.session_state.experiment_setup_file), daemon=True)
             t1.start()
             st.session_state.experiment_thread = t1
             st.success("Experiment started.")
@@ -38,12 +42,24 @@ def ex():
 
 
     # --- Buttons ---
+    dir = Path(__file__).parent.parent.parent.parent
+    files = glob.glob(str(dir) + '/Project_Code/Python3Model/src/experiments/weather_files/*.csv')
+    truncatedFiles = []
+    # print("Here are the files\n")
+    # print(files)
+    for f in files:
+        truncatedFiles.append(f.split("/experiments/", 1)[1])
+    
     st.button("Start Experiment", on_click=start_experiment)
     st.button("Interrupt Experiment", on_click=stop_experiment)
     st.session_state.experiment_name = st.text_input("Experiment Title",)
     st.session_state.experiment_number = st.text_input("Experiment Number",)
+    st.session_state.experiment_setup_file = "/experiments/" + st.selectbox('Select Experiment Setup File',truncatedFiles)
+
     st.write(f"Current Experiment Title: {st.session_state.experiment_name}")
     st.write(f"Current Experiment Number: {st.session_state.experiment_number}")
+    st.write(f"Current Experiment Setup File: {st.session_state.experiment_setup_file}")
+
 
 
     # st.title("Aviation Experiment Platform")

@@ -33,12 +33,12 @@ def eulerToQuat(psiInput,thetaInput,phiInput):
     quat = [q0/e,q1/e,q2/e,q3/e]
     return quat
 
-def loadFile():
+def loadFile(filename:str="/experiments/weather_files/weather.csv"):
     dir = Path(__file__).parent
     # print(f"Script Directory: {dir}")
-    filename = str(dir) + "/experiments/weather_files/weather.csv"
-    filename = str(dir) + "/experiments/weather_files/turbulence.csv"
-    with open(filename,"r") as f:
+    # filename = str(dir) + "/experiments/weather_files/weather.csv"
+    # filename = str(dir) + "/experiments/weather_files/turbulence.csv"
+    with open(str(dir) + filename,"r") as f:
         matrix = list(csv.reader(f,delimiter=','))
         # print(matrix)
         return matrix
@@ -371,7 +371,7 @@ def specialPrint(text, inputRequested,type):
 
 #     return userInput
 
-def ex(stop_event: threading.Event, experiment_name : str,experiment_number : int):
+def ex(stop_event: threading.Event, experiment_name : str,experiment_number : int,experiment_setup_file:str):
     # playSound()
     """
     One Time experimental setup
@@ -387,7 +387,7 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
     else:
         prefix = experiment_name
     
-    experimentConditionMatrix = loadFile()
+    experimentConditionMatrix = loadFile(experiment_setup_file)
     startAt = 0
     if(experiment_number == "" or experiment_number == None):
         startAt = input("Start At Experiment #1 to " + str(len(experimentConditionMatrix)-1)) 
@@ -424,32 +424,32 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
 
 
 
-    # startTime = time.time()
-    # # xplaneFolderPath = filedialog.askdirectory(
-    # #     title="Select The X-Plane 11 Folder",
-    # #     initialdir="/",  # Optional: set initial directory
-    # #     # filetypes=(("Text files", "*.txt"), ("All files", "*.*")) # Optional: filter file types
-    # #     )
-    # xplaneFolderPath = "/Users/flyingtopher/Applications/X-Plane 11"
+    startTime = time.time()
+    # xplaneFolderPath = filedialog.askdirectory(
+    #     title="Select The X-Plane 11 Folder",
+    #     initialdir="/",  # Optional: set initial directory
+    #     # filetypes=(("Text files", "*.txt"), ("All files", "*.*")) # Optional: filter file types
+    #     )
+    xplaneFolderPath = "/Users/flyingtopher/Applications/X-Plane 11"
 
-    # """
-    # Experiment Loop
-    # """
-    # while(experimentCount<len(experimentConditionMatrix)):
-    #     setUp(xplaneFolderPath)
-    #     file = open(str(xplaneFolderPath) + "Data.txt", 'a')
-    #     file.write(str(header)) #Write Header to File$
-    #     currentConditions = experimentConditionMatrix[experimentCount]
-    #     file2.write(str(experimentCount) +" // " + str(currentConditions))
-    #     file2.flush()
-    #     exitExperimentLoop = runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file,stop_event)
-    #     cleanUp(experimentCount,title,xplaneFolderPath)
-    #     if(exitExperimentLoop or stop_event.is_set()):
-    #         break
-    #     experimentCount+=1
-    #     endTime = time.time()
-    #     elapsed = endTime-startTime
-    #     file2.write(" " + str(elapsed) + "\n")
+    """
+    Experiment Loop
+    """
+    while(experimentCount<len(experimentConditionMatrix)):
+        setUp(xplaneFolderPath)
+        file = open(str(xplaneFolderPath) + "Data.txt", 'a')
+        file.write(str(header)) #Write Header to File$
+        currentConditions = experimentConditionMatrix[experimentCount]
+        file2.write(str(experimentCount) +" // " + str(currentConditions))
+        file2.flush()
+        exitExperimentLoop = runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file,stop_event)
+        cleanUp(experimentCount,title,xplaneFolderPath)
+        if(exitExperimentLoop or stop_event.is_set()):
+            break
+        experimentCount+=1
+        endTime = time.time()
+        elapsed = endTime-startTime
+        file2.write(" " + str(elapsed) + "\n")
         
        
     """
