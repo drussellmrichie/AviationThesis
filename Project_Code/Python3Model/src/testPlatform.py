@@ -1,4 +1,5 @@
 import datetime
+import glob
 from math import cos, pi, sin, sqrt
 import os
 import time
@@ -299,15 +300,23 @@ def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experime
     """
     Ask Experimenter if they would like to exit experiment battery early and not continue to the next experiment in the sequence 
     """
-
-    if(not stop_event.is_set()):
-        exitDecision = input("Press 'y' or any key to continue, press 'n' to exit...")
-        # exitDecision = "yes"
-    
-    if(exitDecision == "n" or stop_event.is_set()):
+    exitExperimentLoop = False
+    if(stop_event.is_set()):
         exitExperimentLoop = True
-    else:
-        exitExperimentLoop = False
+    else: 
+        exitDecision = input("Press 'y' or any key to continue, press 'n' to exit...")
+        if(exitDecision == "n"):
+            exitExperimentLoop = True
+    
+    # if(not stop_event.is_set()):
+    #     exitDecision = input("Press 'y' or any key to continue, press 'n' to exit...")
+    #     # exitDecision = "yes"
+    
+    # if(exitDecision == "n" or stop_event.is_set()):
+    #     exitExperimentLoop = True
+    # else:
+    #     exitExperimentLoop = False
+
     return exitExperimentLoop
 
 def setUp(xplaneFolderPath):
@@ -397,52 +406,52 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
 
     ## Current Experiment Folder Setup
     Path(str(dir) + "/Project_Data/Current Experiment").mkdir(exist_ok=True, parents=True)
+    files = glob.glob(str(dir) + '/Project_Data/Current Experiment/*.csv')
+    print("Here are the files\n")
+    print(files)
+    for f in files:
+        os.remove(f)
 
-
+    file2 = open(str(dir) + "/Project_Data/Current Experiment/CurrentExperimentList.txt", 'w')
+    file2.close()
     file2 = open(str(dir) + "/Project_Data/Current Experiment/CurrentExperimentList.txt", 'a+')
     file2.write(str(title) + "\n")
-    startTime = time.time()
-    # xplaneFolderPath = filedialog.askdirectory(
-    #     title="Select The X-Plane 11 Folder",
-    #     initialdir="/",  # Optional: set initial directory
-    #     # filetypes=(("Text files", "*.txt"), ("All files", "*.*")) # Optional: filter file types
-    #     )
-    xplaneFolderPath = "/Users/flyingtopher/Applications/X-Plane 11"
+    
 
-    """
-    Experiment Loop
-    """
-    while(experimentCount<len(experimentConditionMatrix)):
-        setUp(xplaneFolderPath)
-        file = open(str(xplaneFolderPath) + "Data.txt", 'a')
-        file.write(str(header)) #Write Header to File$
-        currentConditions = experimentConditionMatrix[experimentCount]
-        file2.write(str(experimentCount) +" // " + str(currentConditions))
-        file2.flush()
-        exitExperimentLoop = runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file,stop_event)
-        cleanUp(experimentCount,title,xplaneFolderPath)
-        if(exitExperimentLoop or stop_event.is_set()):
-            break
-        experimentCount+=1
-        endTime = time.time()
-        elapsed = endTime-startTime
-        file2.write(" " + str(elapsed) + "\n")
+
+
+
+
+
+
+    # startTime = time.time()
+    # # xplaneFolderPath = filedialog.askdirectory(
+    # #     title="Select The X-Plane 11 Folder",
+    # #     initialdir="/",  # Optional: set initial directory
+    # #     # filetypes=(("Text files", "*.txt"), ("All files", "*.*")) # Optional: filter file types
+    # #     )
+    # xplaneFolderPath = "/Users/flyingtopher/Applications/X-Plane 11"
+
+    # """
+    # Experiment Loop
+    # """
+    # while(experimentCount<len(experimentConditionMatrix)):
+    #     setUp(xplaneFolderPath)
+    #     file = open(str(xplaneFolderPath) + "Data.txt", 'a')
+    #     file.write(str(header)) #Write Header to File$
+    #     currentConditions = experimentConditionMatrix[experimentCount]
+    #     file2.write(str(experimentCount) +" // " + str(currentConditions))
+    #     file2.flush()
+    #     exitExperimentLoop = runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file,stop_event)
+    #     cleanUp(experimentCount,title,xplaneFolderPath)
+    #     if(exitExperimentLoop or stop_event.is_set()):
+    #         break
+    #     experimentCount+=1
+    #     endTime = time.time()
+    #     elapsed = endTime-startTime
+    #     file2.write(" " + str(elapsed) + "\n")
         
-        # nextExperimentTimeout = 5
-        # specialPrint("Next Experiment Starting in " + str(nextExperimentTimeout) + " seconds; Type 'n' to cancel", False,messageType.REGULAR)
-        # nextExperimentTimeoutCounter = time.time()
-        # continueToNextExperiment = True
-        # while(time.time() - nextExperimentTimeoutCounter < nextExperimentTimeout):
-        #     decision = input("Press 'n' to cancel next experiment or any other key to continue: ")
-        #     if(decision == 'n'):
-        #         continueToNextExperiment = False
-        #         break
-
-        # if(not continueToNextExperiment):
-        #    break
-
-
-        # pag.alert(text="Experiment " + str(experimentCount+1) + " complete. Starting new Experiment", title="EXPERIMENT STATUS UPDATE")
+       
     """
     End of Experiments
     """
