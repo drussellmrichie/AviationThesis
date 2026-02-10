@@ -61,7 +61,8 @@ class AircraftLandingModel(pyactr.ACTRModel):
         # delta_control = k*delta_theta + k_i*theta*delta_t 
 
         if(theta > THETA_DEADBAND or theta < -THETA_DEADBAND): # Deadband of 0 degrees
-            delta_control = k*delta_theta + k_i*theta*delta_t
+            theta_dot = delta_theta / delta_t # TEST for dampening
+            delta_control = k*delta_theta + k_i*theta*delta_t - 0.2 * theta_dot
 
         return delta_control
     
@@ -69,7 +70,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         """
         Update all controls at the same time by calculating control values for each parameter.
         """
-        TESTSCALINGFACTOR = 5
+        TESTSCALINGFACTOR = 1
         delta_yoke_pull = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ),
@@ -108,8 +109,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         new_yoke_pull   = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_pull)
         new_yoke_steer  = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_steer)
         new_rudder      = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.RUDDER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_rudder)
-        new_throttle = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.THROTTLE],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_throttle,0)
-
+        new_throttle    = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.THROTTLE],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_throttle,0)
         
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_yoke_pull)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_yoke_steer)
