@@ -19,12 +19,14 @@ class params:
                 # Add Throttle Value
                 # Add Flaps Value
                 "flaps"             : ["sim/flightmodel/controls/flaprqst",0,0,0,0,0],
-                "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0]
+                "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0],
+                "vertical_speed" : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-500,0,0,0,0]
             },
             parameterType.AIRCRAFT_CONTROLS: {
                 aircraftControls.YOKE_PULL : [0],
                 aircraftControls.YOKE_STEER : [0],
-                aircraftControls.RUDDER : [0]
+                aircraftControls.RUDDER : [0],
+                aircraftControls.THROTTLE: [0]
             },
             parameterType.PHASE_FLAGS: {
                 flightPhase.DESCENT.value         : [True],
@@ -177,6 +179,7 @@ class aircraftControls(Enum):
     YOKE_PULL = "yoke_pull"
     YOKE_STEER = "yoke_steer"
     RUDDER = "rudder"
+    THROTTLE = "vertical_speed"
 class flightPhase(Enum):
     DESCENT =   "descent"
     FLARE   =   "flare"

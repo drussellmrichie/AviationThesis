@@ -396,7 +396,7 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
     # startAt = input("Start At Experiment #1 to " + str(len(experimentConditionMatrix)-1))
     title = str(prefix + "--" + experimentConditionMatrix[0][0])
     specialPrint("Title is: " + title, False, messageType.REGULAR)
-    allowPrinting = False
+    allowPrinting = True
     isNewExperiment = True
     experimentCount = int(startAt)
     header = "Cycle Time,Latitude, Longitude, Altitude, Pitch, Roll\n"

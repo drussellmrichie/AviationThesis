@@ -55,9 +55,9 @@ class AircraftLandingModel(pyactr.ACTRModel):
         except Exception as e:
             print(e)
 
-    def proportionalIntegralControl(self,k, delta_theta, k_i,theta,delta_t): # Edited to match Embry Riddle Equations
+    def proportionalIntegralControl(self,k, delta_theta, k_i,theta,delta_t,deadBand:int = 0): # Edited to match Embry Riddle Equations
         delta_control = 0
-        THETA_DEADBAND = 0
+        THETA_DEADBAND = deadBand
         # delta_control = k*delta_theta + k_i*theta*delta_t 
 
         if(theta > THETA_DEADBAND or theta < -THETA_DEADBAND): # Deadband of 0 degrees
@@ -92,24 +92,37 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ)
         )
 
-        throttle = 0.25
-        def clamp(value):
-            return min(1,max(-1,value))
+        delta_throttle   = self.proportionalIntegralControl(
+            self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
+            self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"vertical_speed"],listAccess.DELTA_THETA.value,permissions.READ),
+            self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.Ki],listAccess.INTEGRAL_VALUE.value,permissions.READ),
+            self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"vertical_speed"],listAccess.THETA.value,permissions.READ),
+            self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ),
+            100
+        )
+
+        throttle = 0.20
+        def clamp(value,minVal:int=-1):
+            return min(1,max(minVal,value))
         
         new_yoke_pull   = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_pull)
         new_yoke_steer  = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_steer)
         new_rudder      = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.RUDDER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_rudder)
+        new_throttle = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.THROTTLE],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_throttle,0)
+
         
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_yoke_pull)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_yoke_steer)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.RUDDER],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_rudder)
+        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.THROTTLE],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_throttle)
+
 
         # start = time.time()
         self.parameters.printParameter(self.allowPrinting)
         # end = time.time()
         # elapsed = end - start
         # print(f"Parameter Print Time: {elapsed} seconds")
-        self.send_controls_to_xplane(new_yoke_pull/TESTSCALINGFACTOR, new_yoke_steer/TESTSCALINGFACTOR,  new_rudder/TESTSCALINGFACTOR, throttle)
+        self.send_controls_to_xplane(new_yoke_pull/TESTSCALINGFACTOR, new_yoke_steer/TESTSCALINGFACTOR,  new_rudder/TESTSCALINGFACTOR, new_throttle)
 
 ## Pitch at Time, Pitch at Last Cycle, Target Pitch
 ## Target Pitch - Pitch at Last Cycle = Theta
