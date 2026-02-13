@@ -32,7 +32,8 @@ class AircraftLandingModel(pyactr.ACTRModel):
 
     def get_bearing(self,lat1, lat2, long1, long2): 
         brng = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
-        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE,brng)
+        print(brng)
+        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,brng * -1)
 
     def getAndLoadDREFS(self):
         try:
@@ -62,7 +63,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
 
         if(theta > THETA_DEADBAND or theta < -THETA_DEADBAND): # Deadband of 0 degrees
             theta_dot = delta_theta / delta_t # TEST for dampening
-            delta_control = k*delta_theta + k_i*theta*delta_t - 0.2 * theta_dot
+            delta_control = k*delta_theta + k_i*theta*delta_t - 0.01 * theta_dot
 
         return delta_control
     
@@ -78,6 +79,12 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ)
             )
+        
+        # if(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ) >= 0.05 or 
+        #    self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ) <= -0.05):
+        #     delta_yoke_pull=0
+        
+
         delta_yoke_steer = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.DELTA_THETA.value,permissions.READ),
@@ -85,6 +92,11 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ)
         )
+        
+        # if(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.CURRENT.value,permissions.READ) >= 0.1 or 
+        #    self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.CURRENT.value,permissions.READ) <= -0.1):
+        #     delta_yoke_steer=0
+
         delta_rudder   = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"slip_skid"],listAccess.DELTA_THETA.value,permissions.READ),
@@ -103,8 +115,8 @@ class AircraftLandingModel(pyactr.ACTRModel):
         )
 
         throttle = 0.20
-        def clamp(value,minVal:int=-1):
-            return min(1,max(minVal,value))
+        def clamp(value,minVal:int=-1,maxVal:int=1):
+            return min(maxVal,max(minVal,value))
         
         new_yoke_pull   = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_pull)
         new_yoke_steer  = clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_steer)
@@ -122,7 +134,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         # end = time.time()
         # elapsed = end - start
         # print(f"Parameter Print Time: {elapsed} seconds")
-        self.send_controls_to_xplane(new_yoke_pull/TESTSCALINGFACTOR, new_yoke_steer/TESTSCALINGFACTOR,  new_rudder/TESTSCALINGFACTOR, new_throttle)
+        self.send_controls_to_xplane(new_yoke_pull/TESTSCALINGFACTOR,new_yoke_steer/TESTSCALINGFACTOR,  new_rudder/TESTSCALINGFACTOR, new_throttle)
 
 ## Pitch at Time, Pitch at Last Cycle, Target Pitch
 ## Target Pitch - Pitch at Last Cycle = Theta
