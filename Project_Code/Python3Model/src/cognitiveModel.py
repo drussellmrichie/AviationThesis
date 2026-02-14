@@ -16,6 +16,8 @@ from modelParameters import *
 ### Define variables/parameters for aircraft class/category : Wisdom of Raju 
 class AircraftLandingModel(pyactr.ACTRModel):
     # TODO: remove pyactr dependency
+    
+
     def __init__(self,client,printFlag):
         super().__init__()
         self.client = client
@@ -23,6 +25,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters.initialize()
         self.inProgress = True
         self.allowPrinting = printFlag
+        self.coordinateArray = [[39.896139,-104.689779],[39.904739,-104.708091]]
 
     def reassignClient(self,newClient):
         self.client = newClient
@@ -34,6 +37,12 @@ class AircraftLandingModel(pyactr.ACTRModel):
         brng = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
         print(brng)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,abs(brng))
+
+    def distanceFromPoint(self,lat1, lat2, long1, long2):
+        dist = geo.WGS84.Inverse(lat1, long1, lat2, long2)['s12']
+        print(dist)
+        return dist
+
 
     def getAndLoadDREFS(self):
         try:
@@ -72,7 +81,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
             return min(maxVal,max(minVal,value))
 
     def headingToRoll(self,headingDifference):
-        rollDegreesTarget = self.clamp(headingDifference/180,-1,1) * 30
+        rollDegreesTarget = self.clamp(headingDifference/90,-1,1) * 30
         return (rollDegreesTarget)
 
     
@@ -93,12 +102,27 @@ class AircraftLandingModel(pyactr.ACTRModel):
         #    self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ) <= -0.05):
         #     delta_yoke_pull=0
 
-        
+        ##HEADING
         headingTarget = abs(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.READ))
         headingCurrent = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.CURRENT.value,permissions.READ)
         headingDiff = headingTarget - headingCurrent
         rollTarget = self.headingToRoll(headingDiff)
-        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.TARGET.value,permissions.WRITE.value,rollTarget)
+        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.TARGET.value,permissions.WRITE.value,rollTarget)\
+        
+        ##DISTANCE AND LAT LONG TURNOVER
+        lat  = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.CURRENT.value,permissions.READ)
+        long = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.CURRENT.value,permissions.READ)
+        targetLatitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.READ)
+        targetLongitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.READ)
+        distance = self.distanceFromPoint(lat,targetLatitude,long,targetLongitude)
+        if(distance < 1000):
+            print("Coordinates Advancing")
+            coordinates = self.coordinateArray.pop()
+            print(self.coordinateArray)
+            self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.WRITE.value,coordinates[0])
+            self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.WRITE.value,coordinates[1])
+            print(self.coordinateArray)
+        
 
         delta_yoke_steer = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
@@ -127,10 +151,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"vertical_speed"],listAccess.THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ),
             100
-        )
-
-        throttle = 0.20
-        
+        )        
         
         new_yoke_pull   = self.clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_PULL],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_pull)
         new_yoke_steer  = self.clamp(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.YOKE_STEER],listAccess.CONTROL_VALUE.value,permissions.READ) + delta_yoke_steer)
