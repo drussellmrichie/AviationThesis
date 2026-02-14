@@ -7,10 +7,10 @@ class params:
                 "airspeed"          : ["sim/cockpit2/gauges/indicators/airspeed_kts_pilot",80, 0,0,0,0],
                 "roll"              : ["sim/cockpit2/gauges/indicators/roll_AHARS_deg_pilot",20,0,0,0,0],
                 "heading"           : ["sim/cockpit2/gauges/indicators/heading_AHARS_deg_mag_pilot",179,0,0,0,0], # Previous Heading
-                "latitude"          : ["sim/flightmodel/position/latitude",39.914158,0,0,0,0],
+                "latitude"          : ["sim/flightmodel/position/latitude",39.911048,0,0,0,0],
                 # 39.851914
                 # 39.895791
-                "longitude"         : ["sim/flightmodel/position/longitude",-104.696865,0,0,0,0],
+                "longitude"         : ["sim/flightmodel/position/longitude",-104.733408,0,0,0,0],
                 # -104.696032
                 "vertical speed"    : ["sim/flightmodel/position/vh_ind_fpm",-200,0,0,0,0], # Previous Descent Rate
                 "altitude"          : ["sim/flightmodel/position/y_agl",0,0,0,0,0],
@@ -23,7 +23,7 @@ class params:
                 # Add Flaps Value
                 "flaps"             : ["sim/flightmodel/controls/flaprqst",0,0,0,0,0],
                 "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0],
-                "vertical_speed" : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-1000,0,0,0,0]
+                "vertical_speed" : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-200,0,0,0,0]
             },
             parameterType.AIRCRAFT_CONTROLS: {
                 aircraftControls.YOKE_PULL : [0],

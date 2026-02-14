@@ -25,7 +25,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters.initialize()
         self.inProgress = True
         self.allowPrinting = printFlag
-        self.coordinateArray = [[39.896139,-104.689779],[39.904739,-104.708091]]
+        self.coordinateArray = [[39.896139,-104.689779],[39.875027,-104.696482],[39.903662,-104.695983],[39.901754,-104.715951]]
 
     def reassignClient(self,newClient):
         self.client = newClient
@@ -34,9 +34,10 @@ class AircraftLandingModel(pyactr.ACTRModel):
         return self.inProgress
 
     def get_bearing(self,lat1, lat2, long1, long2): 
-        brng = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
-        print(brng)
-        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,abs(brng))
+        brngAzi = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
+        # print(brng)
+        brng = (brngAzi + 360) % 360
+        self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,brng)
 
     def distanceFromPoint(self,lat1, lat2, long1, long2):
         dist = geo.WGS84.Inverse(lat1, long1, lat2, long2)['s12']
@@ -106,6 +107,12 @@ class AircraftLandingModel(pyactr.ACTRModel):
         headingTarget = abs(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.READ))
         headingCurrent = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.CURRENT.value,permissions.READ)
         headingDiff = headingTarget - headingCurrent
+
+# 180
+# 270
+
+# 270-180 = 90 (Positive = Right Turn)
+# 180 - 270 = -90 (Negative, Left Turn)
         rollTarget = self.headingToRoll(headingDiff)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.TARGET.value,permissions.WRITE.value,rollTarget)\
         
