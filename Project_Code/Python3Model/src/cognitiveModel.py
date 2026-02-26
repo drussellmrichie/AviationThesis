@@ -16,8 +16,6 @@ from modelParameters import *
 ### Define variables/parameters for aircraft class/category : Wisdom of Raju 
 class AircraftLandingModel(pyactr.ACTRModel):
     # TODO: remove pyactr dependency
-    
-
     def __init__(self,client,printFlag):
         super().__init__()
         self.client = client
@@ -35,7 +33,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
 
     def get_bearing(self,lat1, lat2, long1, long2): 
         brngAzi = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
-        # print(brng)
         brng = (brngAzi + 360) % 360
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,brng)
 
@@ -70,7 +67,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
         delta_control = 0
         THETA_DEADBAND = deadBand
         # delta_control = k*delta_theta + k_i*theta*delta_t 
-
         if(theta > THETA_DEADBAND or theta < -THETA_DEADBAND): # Deadband of 0 degrees
             theta_dot = delta_theta / delta_t # TEST for dampening
             delta_control = k*delta_theta + k_i*theta*delta_t - 0.01 * theta_dot
@@ -108,11 +104,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
         headingCurrent = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.CURRENT.value,permissions.READ)
         headingDiff = headingTarget - headingCurrent
 
-# 180
-# 270
-
-# 270-180 = 90 (Positive = Right Turn)
-# 180 - 270 = -90 (Negative, Left Turn)
         rollTarget = self.headingToRoll(headingDiff)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.TARGET.value,permissions.WRITE.value,rollTarget)\
         
@@ -129,7 +120,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.WRITE.value,coordinates[0])
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.WRITE.value,coordinates[1])
             print(self.coordinateArray)
-        
 
         delta_yoke_steer = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),

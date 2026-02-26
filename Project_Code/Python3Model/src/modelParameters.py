@@ -12,18 +12,16 @@ class params:
                 # 39.895791
                 "longitude"         : ["sim/flightmodel/position/longitude",-104.733408,0,0,0,0],
                 # -104.696032
-                "vertical speed"    : ["sim/flightmodel/position/vh_ind_fpm",-200,0,0,0,0], # Previous Descent Rate
+                # "vertical speed"    : ["sim/flightmodel/position/vh_ind_fpm",-500,0,0,0,0], # Previous Descent Rate
                 "altitude"          : ["sim/flightmodel/position/y_agl",0,0,0,0,0],
                 "pitch"             : ["sim/flightmodel/position/true_theta",0,0,0,0,0],
                 "brakes"            : ["sim/cockpit2/controls/parking_brake_ratio",0,0,0,0,0],
                 "wheelSpeed"        : ["sim/flightmodel2/gear/tire_rotation_speed_rad_sec",0,0,0,0,0],
                 "wheelWeight"       : ["sim/flightmodel/parts/tire_vrt_def_veh",0,0,0,0,0],
                 # "trim"              : ["sim/flightmodel/controls/elv_trim",0,0,0,0,0]
-                # Add Throttle Value
-                # Add Flaps Value
                 "flaps"             : ["sim/flightmodel/controls/flaprqst",0,0,0,0,0],
                 "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0],
-                "vertical_speed" : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-200,0,0,0,0]
+                "vertical_speed"    : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-500,0,0,0,0]
             },
             parameterType.AIRCRAFT_CONTROLS: {
                 aircraftControls.YOKE_PULL : [0],
@@ -104,8 +102,6 @@ class params:
             drefList.append(item[listAccess.DREF.value])
         return drefList
     
-    
-    
     def getModelKeys(self):
         dictionary :dict = self.globalParameters.get(parameterType.AIRCRAFT_STATE)
         keys = dictionary.items()
@@ -152,10 +148,11 @@ class params:
         for parameter, current, target, previous,deltaTheta,theta in zip(itemList, paramList, targetList,previousList,deltaThetaList,thetaList):
             print(row.format(parameter,current, target, previous,deltaTheta,theta))
         # print(self.globalParameters[parameterType.AIRCRAFT_STATE]["airspeed"][listAccess.CURRENT])
-        
+
 
     def initialize(self):
         self.populateVisionQueue()
+
 class listAccess(Enum):
     DREF = 0
     TARGET = 1
@@ -166,7 +163,7 @@ class listAccess(Enum):
     PHASE_FLAG = 0
     INTEGRAL_VALUE = 0
     TIMING = 0
-    ##Aircraft Controls
+    ## Aircraft Controls
     CONTROL_VALUE = 0
 
 class parameterType(Enum):
@@ -176,7 +173,6 @@ class parameterType(Enum):
     INTEGRAL_VALUES = "integral_values"
     TIMING = "timing"
     VISION_QUEUE = "vision_queue"
-
 class visionModule(Enum):
     QUEUE = "queue"
     POINTER_1 = "pointer_1"

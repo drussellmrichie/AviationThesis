@@ -49,7 +49,7 @@ def selectWeather(matrix,experimentNumber):
 """
 Experiment setup function:
 """
-def experimentSetUp(client,currentConditions,newExperiment,file):
+def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
     # input("Check The Loaded File Now")
     print("Entered: EXPERIMENTSETUP")
     if(newExperiment):
@@ -60,7 +60,8 @@ def experimentSetUp(client,currentConditions,newExperiment,file):
         altitudeMETERS = altitudeFEET/3.281
         altitude = altitudeMETERS
         print(str(altitude))
-        location1 =  [20,   -998, 39.96239,  -104.696032, altitude, -998, -998, -998, -998]
+        # 39.96239,  -104.696032,
+        location1 =  [20,   -998, 39.96239, -104.696032, altitude, -998, -998, -998, -998]
         # testLocation = [20,   -998, 27.20579,  -80.08621, altitude, -998, -998, -998, -998] # 27.20579°N/80.08621°W
         data = [
             location1\
@@ -110,7 +111,6 @@ def experimentSetUp(client,currentConditions,newExperiment,file):
             # result = client.getDREF(windLayer)
             # print("Wind:" + str(result))
 
-
         print("Setting Wind Layers")
         client.sendDREF(windLayer,float(currentConditions[2]))
         # client.sendDREF(windLayer2,15000)
@@ -156,15 +156,15 @@ def experimentSetUp(client,currentConditions,newExperiment,file):
             20 - Latitude and Longitude
         """
         message = "Conditions are set as\n" \
-        "Experiment #: {} \n"\
-        "Starting Altitude: {} \n" \
-        "Layer Altitude: {} \n" \
-        "Wind Direction: {} \n" \
-        "Wind Speed: {} \n" \
-        "Turbulence: {} \n" \
-        "Thermal Rate: {} \n" \
-        "Thermal Percent: {}\n" \
-        "Thermal Altitude: {}\n" \
+        "Experiment #: {} \n"       \
+        "Starting Altitude: {} \n"  \
+        "Layer Altitude: {} \n"     \
+        "Wind Direction: {} \n"     \
+        "Wind Speed: {} \n"         \
+        "Turbulence: {} \n"         \
+        "Thermal Rate: {} \n"       \
+        "Thermal Percent: {}\n"     \
+        "Thermal Altitude: {}\n"    \
         "Cognitive Delay: {}\n".format(currentConditions[0],
                                        currentConditions[1],
                                        currentConditions[2],
@@ -450,8 +450,6 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
         endTime = time.time()
         elapsed = endTime-startTime
         file2.write(" " + str(elapsed) + "\n")
-        
-       
     """
     End of Experiments
     """
