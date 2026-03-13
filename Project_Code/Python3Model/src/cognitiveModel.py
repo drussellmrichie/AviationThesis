@@ -23,7 +23,8 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters.initialize()
         self.inProgress = True
         self.allowPrinting = printFlag
-        self.coordinateArray = [[39.896139,-104.689779],[39.875027,-104.696482],[39.903662,-104.695983],[39.901754,-104.715951]]
+        # self.coordinateArray = [[39.896139,-104.689779],[39.875027,-104.696482],[39.903662,-104.695983],[39.901754,-104.715951]]
+        self.coordinateArray = [[39.875027,-104.696482]]
 
     def reassignClient(self,newClient):
         self.client = newClient

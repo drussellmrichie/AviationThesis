@@ -304,7 +304,8 @@ def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experime
     if(stop_event.is_set()):
         exitExperimentLoop = True
     else: 
-        exitDecision = input("Press 'y' or any key to continue, press 'n' to exit...")
+        # exitDecision = input("Press 'y' or any key to continue, press 'n' to exit...")
+        exitDecision = 'y'
         if(exitDecision == "n"):
             exitExperimentLoop = True
     
@@ -399,7 +400,7 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
     allowPrinting = True
     isNewExperiment = True
     experimentCount = int(startAt)
-    header = "Cycle Time,Latitude, Longitude, Altitude, Pitch, Roll\n"
+    header = "Cycle Time,Latitude,Longitude,AltAGL, Pitch, Roll\n"
 
     # dir = Path(__file__).parent.parent.parent
     # dimkdir(exist_ok=True, parents=True)
