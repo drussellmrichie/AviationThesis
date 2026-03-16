@@ -81,7 +81,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
     def headingToRoll(self,headingDifference):
         rollDegreesTarget = self.clamp(headingDifference/90,-1,1) * 30
         return (rollDegreesTarget)
-
     
     def update_controls_simultaneously(self):
         """

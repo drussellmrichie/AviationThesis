@@ -296,7 +296,6 @@ def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experime
     else: 
         print("Model has finished running")
 
-
     """
     Ask Experimenter if they would like to exit experiment battery early and not continue to the next experiment in the sequence 
     """
@@ -373,7 +372,6 @@ def specialPrint(text, inputRequested,type):
 #     return userInput
 
 def ex(stop_event: threading.Event, experiment_name : str,experiment_number : int,experiment_setup_file:str):
-    # playSound()
     """
     One Time experimental setup
     """
