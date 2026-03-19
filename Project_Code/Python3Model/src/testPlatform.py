@@ -193,6 +193,7 @@ def printLoop(status,data):
 
 def log(cogModel, file,timeElapsed,cycleLength): # Get and format data for logging in output file
     airspeedDREF = "sim/cockpit2/gauges/indicators/airspeed_kts_pilot"
+    groundspeedDREF = "sim/flightmodel/position/groundspeed"
     rollDREF = "sim/cockpit2/gauges/indicators/roll_AHARS_deg_pilot"
     magneticHeadingDREF = "sim/cockpit2/gauges/indicators/heading_AHARS_deg_mag_pilot"
     latitudeDREF = "sim/flightmodel/position/latitude"  
@@ -204,8 +205,9 @@ def log(cogModel, file,timeElapsed,cycleLength): # Get and format data for loggi
     wheelSpeedDREF = "sim/flightmodel2/gear/tire_rotation_speed_rad_sec"
     wheelWeightDREF = "sim/flightmodel/parts/tire_vrt_def_veh"
     if(timeElapsed > cycleLength):
-        sources = [latitudeDREF, longitudeDREF,altitudeAGLDREF, pitchDREF,rollDREF]
+        sources = [latitudeDREF, longitudeDREF,altitudeAGLDREF, pitchDREF,rollDREF,groundspeedDREF]
         data = cogModel.client.getDREFs(sources)
+        # data[5][0] = data[5][0] * 1.94384
         mainString = []
         # data = client.readDATA()
         precision = 6
@@ -398,7 +400,7 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
     allowPrinting = True
     isNewExperiment = True
     experimentCount = int(startAt)
-    header = "Cycle Time,Latitude,Longitude,AltAGL, Pitch, Roll\n"
+    header = "Cycle Time,Latitude,Longitude,AltAGL, Pitch, Roll, GndSpd\n"
 
     # dir = Path(__file__).parent.parent.parent
     # dimkdir(exist_ok=True, parents=True)
