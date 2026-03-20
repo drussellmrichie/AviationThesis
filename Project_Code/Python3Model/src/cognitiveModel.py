@@ -113,7 +113,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         targetLatitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.READ)
         targetLongitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.READ)
         distance = self.distanceFromPoint(lat,targetLatitude,long,targetLongitude)
-        if(distance < 1000):
+        if(distance < 1000 and self.coordinateArray.__len__() > 0):
             print("Coordinates Advancing")
             coordinates = self.coordinateArray.pop()
             print(self.coordinateArray)

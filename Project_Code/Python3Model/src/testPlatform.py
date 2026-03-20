@@ -1,6 +1,7 @@
 import datetime
 import glob
 from math import cos, pi, sin, sqrt
+import math
 import os
 import time
 from time import sleep
@@ -19,6 +20,23 @@ from tkinter import filedialog
 class messageType(Enum):
     REGULAR = 1
     ERROR = 2
+
+class conditionAccess(Enum):
+    # Turbulence Experiments,Starting Altitude (AGL),Wind Layer Altitude,Wind Direction,Wind Speed,
+    # Turbulence,Thermal Rate,Thermal Percent,Thermal Altitude,Cognitive Delay
+    #NEW COLUMNS:
+    # initial_GndSpd, starting_distance
+    STARTING_ALT = 1
+    WIND_LAYER_ALT = 2
+    WIND_DIRECTION = 3
+    WIND_SPEED = 4
+    TURBULENCE = 5
+    THERMAL_RATE = 6
+    THERMAL_PERCENT = 7
+    THERMAL_ALT= 8
+    COGNITIVE_DELAY = 9
+    INITIAL_GNDSPD=10
+    STARTING_DIST=11
 
 def eulerToQuat(psiInput,thetaInput,phiInput):
     psi = float(pi / 360 * psiInput)
@@ -46,22 +64,65 @@ def loadFile(filename:str="/experiments/weather_files/weather.csv"):
 def selectWeather(matrix,experimentNumber):
     return matrix[experimentNumber]
 
+
+def startingLatLong(distance,direction,lat,long):
+        print("Entered startingLatLong")
+        """
+        distance: meters
+        direction: bearing in degrees (0 = North, 90 = East)
+        lat, long: starting coordinates in degrees
+        """
+        R = 6371000  # Earth radius in meters
+
+        # Convert to radians
+        lat1 = math.radians(lat)
+        lon1 = math.radians(long)
+        bearing = math.radians(direction)
+        print("Converted Radians BORF")
+        # Compute new latitude
+        value = (
+            math.sin(lat1) * math.cos(distance / R) +
+            math.cos(lat1) * math.sin(distance / R) * math.cos(bearing)
+        )
+
+        # Clamp to [-1, 1]
+        value = max(-1, min(1, value))
+        print("Value:{}".format(value))
+        lat2 = math.asin(value)
+        print("Computed New Latitude")
+        # Compute new longitude
+        lon2 = lon1 + math.atan2(
+            math.sin(bearing) * math.sin(distance / R) * math.cos(lat1),
+            math.cos(distance / R) - math.sin(lat1) * math.sin(lat2)
+        )
+        print("Computed New Longitude")
+
+        # Convert back to degrees
+        print("Finished startingLatLong")
+        return math.degrees(lat2), math.degrees(lon2)
+
 """
 Experiment setup function:
 """
 def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
     # input("Check The Loaded File Now")
+    
+
     print("Entered: EXPERIMENTSETUP")
     if(newExperiment):
         #Location:
         groundLevel = 5434
-        offset = float(currentConditions[1])
+        offset = float(currentConditions[conditionAccess.STARTING_ALT.value])
         altitudeFEET = groundLevel + offset
         altitudeMETERS = altitudeFEET/3.281
         altitude = altitudeMETERS
         print(str(altitude))
         # 39.96239,  -104.696032,
-        location1 =  [20,   -998, 39.96239, -104.696032, altitude, -998, -998, -998, -998]
+        endLat = 39.892760
+        endLong = -104.696148
+        lat, long = startingLatLong(float(currentConditions[conditionAccess.STARTING_DIST.value])*1852,359,endLat,endLong)
+
+        location1 =  [20,   -998, lat, long, altitude, -998, -998, -998, -998]
         # testLocation = [20,   -998, 27.20579,  -80.08621, altitude, -998, -998, -998, -998] # 27.20579°N/80.08621°W
         data = [
             location1\
@@ -137,7 +198,7 @@ def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
         client.pauseSim(False)
         print("Setting initial velocity")
         zInit = "sim/flightmodel/position/local_vz"
-        client.sendDREF(zInit, 50)
+        client.sendDREF(zInit, float(currentConditions[conditionAccess.INITIAL_GNDSPD.value])/1.94384)
 
         print("Setting Fuel to Experiment Level")
         # fuel = "sim/aircraft/weight/acf_m_fuel_tot"
@@ -178,8 +239,8 @@ def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
         specialPrint(message,False,messageType.REGULAR)
     else:
         print("Experiment currently in progress, not resetting position and environmental conditions")
-    currentDelay = float(currentConditions[9]);
-    return currentDelay;
+    currentDelay = float(currentConditions[9])
+    return currentDelay
 
 def printLoop(status,data):
     while(status):
