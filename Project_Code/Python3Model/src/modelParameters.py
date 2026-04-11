@@ -21,7 +21,7 @@ class params:
                 # "trim"              : ["sim/flightmodel/controls/elv_trim",0,0,0,0,0]
                 "flaps"             : ["sim/flightmodel/controls/flaprqst",0,0,0,0,0],
                 "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0],
-                "vertical_speed"    : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-750,0,0,0,0]
+                "vertical_speed"    : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-400,0,0,0,0]
             },
             parameterType.AIRCRAFT_CONTROLS: {
                 aircraftControls.YOKE_PULL : [0],
