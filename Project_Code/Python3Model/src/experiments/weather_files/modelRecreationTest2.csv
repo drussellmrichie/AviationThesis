@@ -1,0 +1,3 @@
+turbulence experiments,Cognitive Delay,reference_latitude,reference_longitude,distance,altitude_agl,x_velocity,y_velocity,z_velocity,p_rotation,q_rotation,r_rotation,heading,wind_altitude,wind_direction,wind_speed,turbulence_level,velocity_initial,fuel_level,
+NULL,NULL,NULL,NULL,NULL,NULL,sim/flightmodel/position/local_vx,sim/flightmodel/position/local_vy,sim/flightmodel/position/local_vz,sim/flightmodel/position/P,sim/flightmodel/position/Q,sim/flightmodel/position/R,sim/flightmodel/position/q,sim/weather/wind_altitude_msl_m[0],sim/weather/wind_direction_degt[0],sim/weather/wind_speed_kt[0],sim/weather/turbulence[0],sim/flightmodel/position/local_vz,sim/flightmodel/weight/m_fuel,
+0,0.15,39.89276,-104.696148,2,850,0,0,0,0,0,0,179,0,179,0,0,80,20,

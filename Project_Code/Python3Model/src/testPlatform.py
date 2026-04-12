@@ -26,17 +26,19 @@ class conditionAccess(Enum):
     # Turbulence,Thermal Rate,Thermal Percent,Thermal Altitude,Cognitive Delay
     #NEW COLUMNS:
     # initial_GndSpd, starting_distance
-    STARTING_ALT = 1
+    STARTING_ALT = 5
     WIND_LAYER_ALT = 2
     WIND_DIRECTION = 3
     WIND_SPEED = 4
     TURBULENCE = 5
     THERMAL_RATE = 6
     THERMAL_PERCENT = 7
-    THERMAL_ALT= 8
-    COGNITIVE_DELAY = 9
-    INITIAL_GNDSPD=10
-    STARTING_DIST=11
+    THERMAL_ALT = 8
+    COGNITIVE_DELAY = 1
+    INITIAL_GNDSPD= 10
+    STARTING_DIST= 4
+    LAT = 2
+    LONG = 3
 
 def eulerToQuat(psiInput,thetaInput,phiInput):
     psi = float(pi / 360 * psiInput)
@@ -101,29 +103,132 @@ def startingLatLong(distance,direction,lat,long):
         print("Finished startingLatLong")
         return math.degrees(lat2), math.degrees(lon2)
 
+def altitude_feet_to_meters(altitude_feet):
+    return altitude_feet / 3.281
+
+def altitude_agl_to_msl(altitude_agl, ground_level):
+    return altitude_agl + ground_level
+
+def process_altitude(altitude_agl, ground_level):
+    print("Processing Altitude")
+    altitude_msl = altitude_agl_to_msl(altitude_agl, ground_level)
+    print("Converted AGL to MSL")
+    altitude_meters = altitude_feet_to_meters(altitude_msl)
+    return altitude_meters
+
+def nm_to_meters(nm):
+    print("Converting Nautical Miles to Meters")
+    newVal = nm * 1852
+    print("Converted {} Nautical Miles to {} Meters".format(nm,newVal))
+    return newVal
+
+def kts_to_mph(kts):
+    return kts/1.94384
+
 """
 Experiment setup function:
 """
-def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
-    # input("Check The Loaded File Now")
-    
-
-    print("Entered: EXPERIMENTSETUP")
+def experimentSetUp2(client:xpc,columns,drefs,currentConditions,newExperiment,file):
     if(newExperiment):
-        #Location:
+        counter = 0
+        setup = zip(columns,drefs,currentConditions)
+        print("zip length:{}".format(currentConditions.__len__()))
+        for column,dref,value in setup:
+            if counter <= 4:
+                #Do Nothing
+                a = 1
+            elif counter > 4 and counter <=18:
+                match counter:
+                    case 5:
+                        print("Setting Altitude")
+                        altitude = process_altitude(float(value),5434)
+                        print("Setting lat long")
+                        lat, long = startingLatLong(
+                            nm_to_meters(float(currentConditions[conditionAccess.STARTING_DIST.value])),
+                            359,
+                            float(currentConditions[conditionAccess.LAT.value]),
+                            float(currentConditions[conditionAccess.LONG.value])
+                            )
+                        print("Setting Location")
+
+                        location1 =  [20,   -998, lat, long, altitude, -998, -998, -998, -998]
+                        data = [
+                            location1\
+                            ]
+                        print("Sending Data")
+                        client.sendDATA(data)
+                    case 12:
+                        value = eulerToQuat(float(value),0,0)
+                        client.sendDREF(dref,value)
+                    case 17:
+                        value = kts_to_mph(float(value))
+                        client.sendDREF(dref,float(value))
+                    case 18:
+                        value = float(value)
+                        client.sendDREF(dref,[value,value])
+                    case _:
+                        print("Setting: " + column)
+                        client.sendDREF(dref,float(value))
+            print("Set " + column + " to " + str(value) + ' using DREF: ' + dref)
+            counter+=1
+        print("Experiment Setup Complete")
+    else:
+        print("Experiment currently in progress, not resetting position and environmental conditions")
+    return float(currentConditions[conditionAccess.COGNITIVE_DELAY.value])
+
+
+        
+
+def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
+    if(newExperiment):
+        """
+        Calculate Necessary Value
+        use DREF, set Value
+        What do i need to Set-Calculate:
+
+        Altitude-CALCULATE
+        Latitude-Calculate
+        Longitude-Calculate
+
+
+        X Velocity
+        Y Velocity
+        Z Velocity
+
+        X Rotation
+        Y Rotation
+        Z Rotation
+
+        Heading
+
+        Wind Layer Altitude
+        Wind Layer Direction
+        Wind Layer Speed
+
+        Turbulence Level
+
+        Initial Velocity/Ground Speed
+
+        Fuel Levels
+        
+        """
+
+
+
+        """
+        Set Starting Altitude
+        """
+
         groundLevel = 5434
         offset = float(currentConditions[conditionAccess.STARTING_ALT.value])
         altitudeFEET = groundLevel + offset
         altitudeMETERS = altitudeFEET/3.281
         altitude = altitudeMETERS
-        print(str(altitude))
         # 39.96239,  -104.696032,
         endLat = 39.892760
         endLong = -104.696148
         lat, long = startingLatLong(float(currentConditions[conditionAccess.STARTING_DIST.value])*1852,359,endLat,endLong)
-
         location1 =  [20,   -998, lat, long, altitude, -998, -998, -998, -998]
-        # testLocation = [20,   -998, 27.20579,  -80.08621, altitude, -998, -998, -998, -998] # 27.20579°N/80.08621°W
         data = [
             location1\
             ]
@@ -151,7 +256,6 @@ def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
         roll = client.getDREF("sim/flightmodel/position/true_phi")
         
         orientCommand = eulerToQuat(179,0,0) # heading, pitch,Roll
-        orientTest = [1.0,1.0,1.0,1.0] # heading, pitch,Roll
 
         print("ORIENT TO: " + str(orientCommand))
         client.sendDREF(orient,orientCommand)
@@ -174,8 +278,6 @@ def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
 
         print("Setting Wind Layers")
         client.sendDREF(windLayer,float(currentConditions[2]))
-        # client.sendDREF(windLayer2,15000)
-        # client.sendDREF(windLayer3,15000)
         print("Setting Wind Direction and Speed")
         client.sendDREF(windDirection,float(currentConditions[3]))
         print("Set 1")
@@ -216,6 +318,7 @@ def experimentSetUp(client:xpc,currentConditions,newExperiment,file):
             18 - Angle of Attack
             20 - Latitude and Longitude
         """
+
         message = "Conditions are set as\n" \
         "Experiment #: {} \n"       \
         "Starting Altitude: {} \n"  \
@@ -283,7 +386,7 @@ def log(cogModel, file,timeElapsed,cycleLength): # Get and format data for loggi
         file.flush()
     # file.write(str(timeElapsed) + "," + str(data[0][0]) + "," + str(data[1][0]) + "," + str(data[2][0]) + "," + str(data[3][0]) +"\n")
 
-def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file, stop_event: threading.Event):
+def runExperiment(title,setupArray,allowPrinting,isNewExperiment,file, stop_event: threading.Event):
     specialPrint("New Experiment\nSetting Up the Simulation",False,messageType.REGULAR)
     startTime = 0
     endTime = 0
@@ -306,7 +409,11 @@ def runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experime
                 """
                 Set Simulator Conditions
                 """
-                currentDelay = experimentSetUp(cogModel.client,currentConditions,newExperiment,file)
+                cogModel.client.pauseSim(True)
+
+                currentDelay = experimentSetUp2(cogModel.client,setupArray[0],setupArray[1],setupArray[2],newExperiment,file)
+                print("Cognitive Delay is set to: " + str(currentDelay))
+                # currentDelay = 0.15
                 
                 """
                 """
@@ -451,16 +558,17 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
     
     experimentConditionMatrix = loadFile(experiment_setup_file)
     startAt = 0
+    headerOffset = 1
     if(experiment_number == "" or experiment_number == None):
         startAt = input("Start At Experiment #1 to " + str(len(experimentConditionMatrix)-1)) 
     else:
-        startAt = experiment_number
+        startAt = experiment_number 
     # startAt = input("Start At Experiment #1 to " + str(len(experimentConditionMatrix)-1))
     title = str(prefix + "--" + experimentConditionMatrix[0][0])
     specialPrint("Title is: " + title, False, messageType.REGULAR)
     allowPrinting = True
     isNewExperiment = True
-    experimentCount = int(startAt)
+    experimentCount = int(startAt) + headerOffset
     header = "Cycle Time,Latitude,Longitude,AltAGL, Pitch, Roll, GndSpd\n"
 
     # dir = Path(__file__).parent.parent.parent
@@ -502,10 +610,10 @@ def ex(stop_event: threading.Event, experiment_name : str,experiment_number : in
         file = open(str(xplaneFolderPath) + "Data.txt", 'a')
         file.write(str(header)) #Write Header to File$
         currentConditions = experimentConditionMatrix[experimentCount]
-        file2.write(str(experimentCount) +" // " + str(currentConditions))
+        file2.write(str(experimentCount-headerOffset) +" // " + str(currentConditions))
         file2.flush()
-        exitExperimentLoop = runExperiment(title,currentConditions,allowPrinting,isNewExperiment,experimentCount,file,stop_event)
-        cleanUp(experimentCount,title,xplaneFolderPath)
+        exitExperimentLoop = runExperiment(title,[experimentConditionMatrix[0],experimentConditionMatrix[1],currentConditions],allowPrinting,isNewExperiment,file,stop_event)
+        cleanUp(experimentCount-headerOffset,title,xplaneFolderPath)
         if(exitExperimentLoop or stop_event.is_set()):
             break
         experimentCount+=1
