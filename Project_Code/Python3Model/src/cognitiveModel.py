@@ -31,11 +31,42 @@ class AircraftLandingModel(pyactr.ACTRModel):
 
     def getSimulationStatus(self):
         return self.inProgress
+    
 
-    def get_bearing(self,lat1, lat2, long1, long2): 
+    def get_radial_error(self,station_lat,station_long, current_lat,current_long,radial):
+        bearing = geo.WGS84.Inverse(
+        station_lat,
+        station_long,
+        current_lat,
+        current_long
+        )['azi1']
+
+        bearing = (bearing + 360) % 360
+
+        error = (radial - bearing + 540) % 360 - 180
+
+        return error
+    
+    def intercept_course(self,current_bearing_to_station, desired_radial, intercept_angle=30):
+
+        diff = (desired_radial - current_bearing_to_station + 360) % 360
+        
+        if diff > 180:
+            # radial is to the left
+            return (desired_radial + intercept_angle) % 360
+        else:
+            # radial is to the right
+            return (desired_radial - intercept_angle) % 360
+
+    def get_bearing(self,lat1,long1,lat2, long2): 
         brngAzi = geo.WGS84.Inverse(lat1, long1, lat2, long2)['azi1']
         brng = (brngAzi + 360) % 360
+        # brng = self.get_radial_error(lat1,long1,lat2,long2,359) #TEST
+        # brng = self.intercept_course(brng, 359) #TEST
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.WRITE.value,brng)
+
+    
+    
 
     def distanceFromPoint(self,lat1, lat2, long1, long2):
         dist = geo.WGS84.Inverse(lat1, long1, lat2, long2)['s12']
@@ -59,7 +90,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
             long = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.CURRENT.value,permissions.READ)
             targetLatitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.READ)
             targetLongitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.READ)
-            self.get_bearing(lat,targetLatitude,long,targetLongitude)
+            self.get_bearing(lat,long,targetLatitude,targetLongitude)
             self.parameters.visionCycle() ## Update the vision queue before the next state update
         except Exception as e:
             print(e)
@@ -94,10 +125,6 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ)
             )
-        
-        # if(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ) >= 0.05 or 
-        #    self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"pitch"],listAccess.DELTA_THETA.value,permissions.READ) <= -0.05):
-        #     delta_yoke_pull=0
 
         ##HEADING
         headingTarget = abs(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"heading"],listAccess.TARGET.value,permissions.READ))
@@ -107,12 +134,13 @@ class AircraftLandingModel(pyactr.ACTRModel):
         rollTarget = self.headingToRoll(headingDiff)
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.TARGET.value,permissions.WRITE.value,rollTarget)\
         
-        ##DISTANCE AND LAT LONG TURNOVER
+        ## DISTANCE AND LAT LONG TURNOVER
         lat  = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.CURRENT.value,permissions.READ)
         long = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.CURRENT.value,permissions.READ)
         targetLatitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"latitude"],listAccess.TARGET.value,permissions.READ)
         targetLongitude = self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"longitude"],listAccess.TARGET.value,permissions.READ)
         distance = self.distanceFromPoint(lat,targetLatitude,long,targetLongitude)
+
         if(distance < 1000 and self.coordinateArray.__len__() > 0):
             print("Coordinates Advancing")
             coordinates = self.coordinateArray.pop()
@@ -128,12 +156,8 @@ class AircraftLandingModel(pyactr.ACTRModel):
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.TIMING,timeValues.DELTA_T],listAccess.TIMING.value,permissions.READ)
         )
-        
-        # if(self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.CURRENT.value,permissions.READ) >= 0.1 or 
-        #    self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"roll"],listAccess.CURRENT.value,permissions.READ) <= -0.1):
-        #     delta_yoke_steer=0
 
-        delta_rudder   = self.proportionalIntegralControl(
+        delta_rudder = self.proportionalIntegralControl(
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.K],listAccess.INTEGRAL_VALUE.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.AIRCRAFT_STATE,"slip_skid"],listAccess.DELTA_THETA.value,permissions.READ),
             self.parameters.dictionaryAccess([parameterType.INTEGRAL_VALUES,integralValues.Ki],listAccess.INTEGRAL_VALUE.value,permissions.READ),
@@ -161,11 +185,7 @@ class AircraftLandingModel(pyactr.ACTRModel):
         self.parameters.dictionaryAccess([parameterType.AIRCRAFT_CONTROLS,aircraftControls.THROTTLE],listAccess.CONTROL_VALUE.value,permissions.WRITE.value,new_throttle)
 
 
-        # start = time.time()
         self.parameters.printParameter(self.allowPrinting)
-        # end = time.time()
-        # elapsed = end - start
-        # print(f"Parameter Print Time: {elapsed} seconds")
         self.send_controls_to_xplane(new_yoke_pull/TESTSCALINGFACTOR,new_yoke_steer/TESTSCALINGFACTOR,  new_rudder/TESTSCALINGFACTOR, new_throttle)
 
 ## Pitch at Time, Pitch at Last Cycle, Target Pitch

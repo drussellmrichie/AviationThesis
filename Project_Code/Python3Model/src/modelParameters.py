@@ -8,17 +8,12 @@ class params:
                 "roll"              : ["sim/cockpit2/gauges/indicators/roll_AHARS_deg_pilot",20,0,0,0,0],
                 "heading"           : ["sim/cockpit2/gauges/indicators/heading_AHARS_deg_mag_pilot",179,0,0,0,0], # Previous Heading
                 "latitude"          : ["sim/flightmodel/position/latitude",39.875027,0,0,0,0],
-                # 39.851914
-                # 39.895791
                 "longitude"         : ["sim/flightmodel/position/longitude",-104.696482,0,0,0,0],
-                # -104.696032
-                # "vertical speed"    : ["sim/flightmodel/position/vh_ind_fpm",-500,0,0,0,0], # Previous Descent Rate
                 "altitude"          : ["sim/flightmodel/position/y_agl",0,0,0,0,0],
                 "pitch"             : ["sim/flightmodel/position/true_theta",0,0,0,0,0],
                 "brakes"            : ["sim/cockpit2/controls/parking_brake_ratio",0,0,0,0,0],
                 "wheelSpeed"        : ["sim/flightmodel2/gear/tire_rotation_speed_rad_sec",0,0,0,0,0],
                 "wheelWeight"       : ["sim/flightmodel/parts/tire_vrt_def_veh",0,0,0,0,0],
-                # "trim"              : ["sim/flightmodel/controls/elv_trim",0,0,0,0,0]
                 "flaps"             : ["sim/flightmodel/controls/flaprqst",0,0,0,0,0],
                 "slip_skid"         : ["sim/cockpit2/gauges/indicators/slip_deg",0,0,0,0,0],
                 "vertical_speed"    : ["sim/cockpit2/gauges/indicators/vvi_fpm_pilot",-400,0,0,0,0]
@@ -41,7 +36,8 @@ class params:
             parameterType.TIMING: {
                 timeValues.DELTA_T: 0.15
             },
-            parameterType.VISION_QUEUE: { ## Basic Simulator of a scan order (FIFO) for vision module
+            parameterType.VISION_QUEUE: { 
+                ## Basic Simulator of a scan order (FIFO) for vision module
                 visionModule.QUEUE.value: [],
                 visionModule.POINTER_1.value: [0]
             }

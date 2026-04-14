@@ -26,7 +26,6 @@ class conditionAccess(Enum):
     # Turbulence,Thermal Rate,Thermal Percent,Thermal Altitude,Cognitive Delay
     #NEW COLUMNS:
     # initial_GndSpd, starting_distance
-    STARTING_ALT = 5
     WIND_LAYER_ALT = 2
     WIND_DIRECTION = 3
     WIND_SPEED = 4
@@ -36,9 +35,13 @@ class conditionAccess(Enum):
     THERMAL_ALT = 8
     COGNITIVE_DELAY = 1
     INITIAL_GNDSPD= 10
-    STARTING_DIST= 4
+   
     LAT = 2
     LONG = 3
+    RADIAL = 4
+    STARTING_DIST= 5
+    STARTING_ALT = 6
+
 
 def eulerToQuat(psiInput,thetaInput,phiInput):
     psi = float(pi / 360 * psiInput)
@@ -104,7 +107,10 @@ def startingLatLong(distance,direction,lat,long):
         return math.degrees(lat2), math.degrees(lon2)
 
 def altitude_feet_to_meters(altitude_feet):
-    return altitude_feet / 3.281
+    print("Altitude Feet:{}".format(altitude_feet))
+    altitude_meters = altitude_feet / 3.28084
+    print("Altitude Meters:{}".format(altitude_meters))
+    return altitude_meters
 
 def altitude_agl_to_msl(altitude_agl, ground_level):
     return altitude_agl + ground_level
@@ -134,18 +140,19 @@ def experimentSetUp2(client:xpc,columns,drefs,currentConditions,newExperiment,fi
         setup = zip(columns,drefs,currentConditions)
         print("zip length:{}".format(currentConditions.__len__()))
         for column,dref,value in setup:
-            if counter <= 4:
+            if counter <= 5:
                 #Do Nothing
                 a = 1
-            elif counter > 4 and counter <=18:
+            elif counter > 5 and counter <=19:
                 match counter:
-                    case 5:
+                    case 6:
                         print("Setting Altitude")
                         altitude = process_altitude(float(value),5434)
+                        print("Altitude: {} Meters".format(altitude))
                         print("Setting lat long")
                         lat, long = startingLatLong(
                             nm_to_meters(float(currentConditions[conditionAccess.STARTING_DIST.value])),
-                            359,
+                            float(currentConditions[conditionAccess.RADIAL.value]),
                             float(currentConditions[conditionAccess.LAT.value]),
                             float(currentConditions[conditionAccess.LONG.value])
                             )
@@ -157,13 +164,13 @@ def experimentSetUp2(client:xpc,columns,drefs,currentConditions,newExperiment,fi
                             ]
                         print("Sending Data")
                         client.sendDATA(data)
-                    case 12:
+                    case 13:
                         value = eulerToQuat(float(value),0,0)
                         client.sendDREF(dref,value)
-                    case 17:
+                    case 18:
                         value = kts_to_mph(float(value))
                         client.sendDREF(dref,float(value))
-                    case 18:
+                    case 19:
                         value = float(value)
                         client.sendDREF(dref,[value,value])
                     case _:
