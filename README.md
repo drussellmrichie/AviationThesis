@@ -1,6 +1,6 @@
 Clear Prop
 # Introduction
-This repository contains code for my Cognitive Science, Computer Science, Aviaition thesis project which began in August of 2024 as a senior honors thesis for the University of Pennsylvania's Cognitive Science program. 
+This repository contains code for Chris Powell's Cognitive Science, Computer Science, Aviaition thesis project which began in August of 2024 as a senior honors thesis for the University of Pennsylvania's Cognitive Science program. 
 
 # Setup & Installation
 
