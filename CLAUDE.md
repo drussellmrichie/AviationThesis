@@ -69,6 +69,12 @@ Analysis focuses on descent rate, pitch/roll/altitude tracking, VCDI (Vertical C
 
 `Project_Code/JavaModel/` contains a legacy parallel implementation. `Model.java` manages a `MindQueue` of cognitive actions (VISION, MOTOR, DELAY). It is no longer the active implementation — the Python model is current.
 
+## Environment Setup Notes
+
+- **X-Plane has no headless mode.** It always requires a display and renders graphics. The best workaround is launching it normally, loading a flight, then minimizing — rendering overhead drops significantly when minimized. Do not launch it with `-WindowStyle Minimized` (causes crash on startup).
+- **XPlaneConnect plugin** (v1.3-rc6) must be installed at `<X-Plane 12>/Resources/plugins/XPlaneConnect/`. It works with X-Plane 12 but may log deprecated DREF warnings — these are non-fatal.
+- **Python interpreter**: always use `C:/Users/druss/miniconda3/python.exe`, not `python` or `python3` (the system stub redirects to the Microsoft Store).
+
 ## Key Conventions
 
 - **Parameter access:** All reads/writes to aircraft state go through `modelParameters.params()` using the defined Enum keys. Do not add raw dict access.

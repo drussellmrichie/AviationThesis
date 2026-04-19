@@ -1,0 +1,17 @@
+# Cognitive model (Project_Code/Python3Model)
+streamlit
+pyactr
+geographiclib
+rich
+
+# Data analysis (Project_Data_Analysis notebooks)
+numpy
+pandas
+matplotlib
+matplotlib-inline
+utm
+colour
+windrose
+
+# Jupyter (for running notebooks)
+jupyterlab
